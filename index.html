@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petualangan Papua Bersama Rodex</title>
+<style>
+body {
+  margin: 0;
+  background: #143b2b;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+}
+h1 { color: #ffe17a; }
+canvas {
+  width: 95%;
+  max-width: 900px;
+  border: 4px solid white;
+  border-radius: 12px;
+}
+button {
+  padding: 13px 18px;
+  margin: 5px;
+  border: 0;
+  border-radius: 10px;
+  background: #ffc857;
+  font-weight: bold;
+  font-size: 16px;
+}
+</style>
+</head>
+<body>
+
+<h1>🌿 PETUALANGAN PAPUA 🦜</h1>
+<p>Jelajahi Papua bersama Rodex!</p>
+<p>Buah merah: <span id="score">0</span>/10</p>
+
+<canvas id="game" width="900" height="450"></canvas>
+
+<p id="status">Tekan MULAI untuk bermain!</p>
+
+<button id="left">⬅ KIRI</button>
+<button id="jump">⬆ LOMPAT</button>
+<button id="right">KANAN ➡</button>
+<button onclick="startGame()">MULAI / ULANGI</button>
+
+<script>
+const c=document.getElementById("game");
+const ctx=c.getContext("2d");
+let player, fruits, score, running, keys={left:false,right:false};
+const ground=370;
+
+function drawBackground(){
+ ctx.fillStyle="#75cce0";
+ ctx.fillRect(0,0,900,450);
+
+ ctx.fillStyle="#65966a";
+ ctx.beginPath();
+ ctx.moveTo(0,300);
+ ctx.lineTo(150,80);
+ ctx.lineTo(300,300);
+ ctx.lineTo(480,100);
+ ctx.lineTo(650,300);
+ ctx.lineTo(800,75);
+ ctx.lineTo(900,280);
+ ctx.fill();
+
+ ctx.fillStyle="#245e3c";
+ for(let x=20;x<900;x+=100){
+  ctx.fillRect(x,310,12,65);
+  ctx.beginPath();
+  ctx.arc(x+6,300,32,0,Math.PI*2);
+  ctx.fill();
+ }
+
+ ctx.fillStyle="#93663e";
+ ctx.fillRect(0,ground,900,80);
+ ctx.fillStyle="#3c9847";
+ ctx.fillRect(0,ground,900,10);
+
+ // Rumah Honai
+ ctx.fillStyle="#67452d";
+ ctx.beginPath();
+ ctx.moveTo(60,ground);
+ ctx.quadraticCurveTo(100,270,140,ground);
+ ctx.fill();
+}
+
+function drawPlayer(){
+ ctx.fillStyle="#d9a47c";
+ ctx.beginPath();
+ ctx.arc(player.x,player.y-35,14,0,7);
+ ctx.fill();
+ ctx.fillStyle="#d8463d";
+ ctx.fillRect(player.x-13,player.y-20,26,28);
+ ctx.fillStyle="#222";
+ ctx.fillRect(player.x-10,player.y+8,8,22);
+ ctx.fillRect(player.x+3,player.y+8,8,22);
+}
+
+function drawRodex(){
+ ctx.fillStyle="#d9a47c";
+ ctx.beginPath();
+ ctx.arc(790,ground-65,14,0,7);
+ ctx.fill();
+ ctx.fillStyle="#17334e";
+ ctx.fillRect(775,ground-50,30,45);
+ ctx.fillStyle="white";
+ ctx.font="bold 18px Arial";
+ ctx.fillText("RODEX",760,ground-90);
+}
+
+function startGame(){
+ player={x:110,y:ground,vy:0};
+ fruits=[];
+ score=0;
+ running=true;
+ for(let i=0;i<10;i++){
+  fruits.push({x:300+i*100,y:300});
+ }
+ document.getElementById("score").textContent=0;
+ document.getElementById("status").textContent="Ayo kumpulkan 10 buah merah!";
+ loop();
+}
+
+function jump(){
+ if(running && player.y>=ground) player.vy=-13;
+}
+
+function loop(){
+ if(!running)return;
+
+ drawBackground();
+
+ if(keys.left)player.x-=4;
+ if(keys.right)player.x+=4;
+ player.x=Math.max(20,Math.min(880,player.x));
+
+ player.vy+=0.6;
+ player.y+=player.vy;
+ if(player.y>ground){player.y=ground;player.vy=0;}
+
+ fruits.forEach((f,i)=>{
+  f.x-=2;
+  ctx.fillStyle="red";
+  ctx.beginPath();
+  ctx.arc(f.x,f.y,11,0,7);
+  ctx.fill();
+
+  if(Math.abs(player.x-f.x)<22 && Math.abs(player.y-25-f.y)<30){
+   fruits.splice(i,1);
+   score++;
+   document.getElementById("score").textContent=score;
+  }
+ });
+
+ drawRodex();
+ drawPlayer();
+
+ if(score>=10){
+  running=false;
+  document.getElementById("status").textContent="🎉 SELAMAT! Misi Papua berhasil!";
+  return;
+ }
+
+ requestAnimationFrame(loop);
+}
+
+document.addEventListener("keydown",e=>{
+ if(e.key==="ArrowLeft"||e.key==="a")keys.left=true;
+ if(e.key==="ArrowRight"||e.key==="d")keys.right=true;
+ if(e.key==="ArrowUp"||e.key===" ")jump();
+});
+document.addEventListener("keyup",e=>{
+ if(e.key==="ArrowLeft"||e.key==="a")keys.left=false;
+ if(e.key==="ArrowRight"||e.key==="d")keys.right=false;
+});
+
+function hold(id,key){
+ const b=document.getElementById(id);
+ b.addEventListener("pointerdown",()=>keys[key]=true);
+ b.addEventListener("pointerup",()=>keys[key]=false);
+ b.addEventListener("pointerleave",()=>keys[key]=false);
+}
+hold("left","left");
+hold("right","right");
+document.getElementById("jump").addEventListener("click",jump);
+
+drawBackground();
+drawRodex();
+</script>
+</body>
+</html>
